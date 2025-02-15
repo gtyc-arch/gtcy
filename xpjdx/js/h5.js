@@ -2,7 +2,7 @@ $(document).ready(function () {
   console.log("✅ h5.js 已加载，等待 #jump-button 渲染...");
 
   // 备用域名列表（按优先级排序）
-  var domainList = [
+  window.domainList = [
       'https://www.987631.vip',
       'https://zt.p98704.vip',
       'https://qp.ampj.x94751.vip',
@@ -12,13 +12,13 @@ $(document).ready(function () {
       'https://qp.ampj.x95793.vip'
   ];
 
-var currentDomainIndex = 0;
+  window.currentDomainIndex = 0;  // 当前使用的域名索引
 
   /**
    * 🔍 **检测域名可用性**
    * 通过 https://www.itdog.cn/http/ 进行检测
    */
-  function testDomainAvailability(domain) {
+ function testDomainAvailability(domain) {
   return new Promise((resolve, reject) => {
     $.get('https://www.itdog.cn/http/' + domain, function(response) {
       let failedRegions = 0;
@@ -66,5 +66,38 @@ function switchToNextDomain() {
     });
 }
 
-// 初始化检查
+  /**
+   * 🔗 **绑定点击事件**
+   * 改为直接在 DOM 加载完成后绑定
+   */
+  $(document).on("click", ".jump-button", function (e) {
+      e.preventDefault();  // 阻止默认行为
+
+      // 获取当前页面的 shareName 和 proxyAccount 参数
+      var urlParams = new URLSearchParams(window.location.search);
+      var shareName = urlParams.get("shareName") || "";
+      var proxyAccount = urlParams.get("proxyAccount") || "";
+
+      // 获取基础URL和data-url
+      let baseUrl = window.domainList[window.currentDomainIndex];
+      let path = $(this).attr("data-url");
+
+      // 确保在拼接 URL 时正确添加斜杠
+      let fullUrl = baseUrl + (path.startsWith("/") ? path : "/" + path);
+      console.log("拼接的跳转 URL:", fullUrl);  // 输出拼接后的 URL
+
+      // 拼接 shareName 和 proxyAccount 参数
+      let finalUrl = fullUrl + `?shareName=${shareName}&proxyAccount=${proxyAccount}`;
+      console.log("最终跳转的 URL:", finalUrl);  // 输出最终的 URL
+
+      // 如果拼接的URL有效，进行跳转
+      if (finalUrl) {
+          window.location.href = finalUrl;  // 使用 window.location.href 进行跳转
+      }
+  });
+
+  // **初始化：检测当前域名状态**
 switchToNextDomain();
+      }
+  });
+});
