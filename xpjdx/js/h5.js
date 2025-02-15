@@ -87,23 +87,24 @@ $(document).on("click", ".jump-button", function (e) {
     // 拼接目标 URL，确保正确格式
     let fullUrl = targetUrl;
 
-    // 如果目标 URL 包含 '？' 则添加 '&' 否则添加 '?' 来开始查询参数
-    if (fullUrl.includes('?')) {
-        fullUrl += `&shareName=${shareName || ""}&proxyAccount=${proxyAccount || ""}`;
+    // 拼接 URL 参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareNameParam = urlParams.get("shareName");
+    const proxyAccountParam = urlParams.get("proxyAccount");
+
+    let newUrl = targetUrl;
+    if (newUrl.indexOf('?') === -1) {
+        newUrl += `?shareName=${shareNameParam || ""}&proxyAccount=${proxyAccountParam || ""}`;
     } else {
-        fullUrl += `?shareName=${shareName || ""}&proxyAccount=${proxyAccount || ""}`;
+        newUrl += `&shareName=${shareNameParam || ""}&proxyAccount=${proxyAccountParam || ""}`;
     }
 
-    console.log("拼接后的跳转 URL:", fullUrl);  // 打印跳转的完整 URL
+    console.log("拼接后的跳转 URL:", newUrl);  // 打印拼接后的 URL
 
-    // 确保拼接后 URL 正确
-    if (fullUrl.indexOf('shareName=') === -1) {
-        console.error("拼接后的 URL 错误: 缺少 shareName 参数");
-    } else {
-        // 跳转到拼接后的 URL
-        window.open(fullUrl, "_blank");  // 使用 `window.open` 打开新标签页
-    }
+    // 跳转到拼接后的 URL
+    window.open(newUrl, "_blank");  // 使用 `window.open` 打开新标签页
 });
+
 
 
 
