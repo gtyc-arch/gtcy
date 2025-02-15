@@ -98,13 +98,13 @@ $(document).on("click", ".jump-button", function (e) {
     } else {
         newUrl += `&shareName=${shareNameParam || ""}&proxyAccount=${proxyAccountParam || ""}`;
     }
+  console.log("拼接后的跳转 URL:", newUrl);  // 打印拼接后的 URL
 
-    console.log("拼接后的跳转 URL:", newUrl);  // 打印拼接后的 URL
-
-    // 跳转到拼接后的 URL
-    window.location.href = newUrl;  // 使用 `window.open` 打开新标签页
+  // 如果拼接的URL有效，进行跳转
+  if (fullUrl) {
+    window.location.href = fullUrl;  // 使用 window.location.href 进行跳转
+  }
 });
-
 
 
 
