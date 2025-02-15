@@ -78,8 +78,16 @@ $(document).on("click", ".jump-button", function (e) {
     // 获取目标链接的 `data-url`
     const targetUrl = $(this).attr("data-url");
 
+    // 确保 targetUrl 是有效的
+    if (!targetUrl) {
+        console.error("目标 URL（data-url）不存在");
+        return;
+    }
+
     // 拼接目标 URL，确保正确格式
     let fullUrl = targetUrl;
+
+    // 如果目标 URL 包含 '？' 则添加 '&' 否则添加 '?' 来开始查询参数
     if (fullUrl.includes('?')) {
         fullUrl += `&shareName=${shareName || ""}&proxyAccount=${proxyAccount || ""}`;
     } else {
@@ -88,8 +96,13 @@ $(document).on("click", ".jump-button", function (e) {
 
     console.log("拼接后的跳转 URL:", fullUrl);  // 打印跳转的完整 URL
 
-    // 跳转到拼接后的 URL
-    window.open(fullUrl, "_blank");  // 使用 `window.open` 打开新标签页
+    // 确保拼接后 URL 正确
+    if (fullUrl.indexOf('shareName=') === -1) {
+        console.error("拼接后的 URL 错误: 缺少 shareName 参数");
+    } else {
+        // 跳转到拼接后的 URL
+        window.open(fullUrl, "_blank");  // 使用 `window.open` 打开新标签页
+    }
 });
 
 
