@@ -30,36 +30,6 @@ const domain = 'https://www.987631.vip';
     console.error('❌ 请求失败', error);
   });
 
-    // 使用 jQuery 的 $.ajax() 请求 Boce API
-    $.ajax({
-      url: apiUrl,
-      type: 'GET',
-      data: requestData,
-      success: function (data) {
-        console.log(`🔎 检测 ${domain} 可用`);
-
-        // 假设返回的 data 包含失败的地区信息
-        let failRegions = data.failRegions || 0;  // 根据 API 的返回数据结构调整
-        console.log(`⚠️ ${domain} 失败的地区数量：${failRegions}`);
-
-        // 判断失败的地区数量
-        if (failRegions >= maxFailCount) {
-          failCount++;
-          console.warn(`⚠️ ${domain} 访问失败超过 ${maxFailCount} 个地区，切换域名 (${failCount}/${maxFailCount})`);
-          callback(false); // 失败，触发切换域名
-        } else {
-          console.log(`✅ ${domain} 可用！`);
-          callback(true); // 成功，继续使用当前域名
-        }
-      },
-      error: function () {
-        failCount++;
-        console.error(`❌ ${domain} 检测失败 (${failCount}/${maxFailCount})`);
-        callback(false); // 失败，触发切换域名
-      }
-    });
-  }
-
   console.log("✅ h5.js 已成功加载");
 
   // 🔄 切换到下一个可用域名
