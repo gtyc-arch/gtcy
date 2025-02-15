@@ -65,17 +65,29 @@ $(document).ready(function () {
    * 改为直接在 DOM 加载完成后绑定
    */
   $(document).on("click", ".jump-button", function (e) {
-    console.log("按钮点击事件触发！"); // 确保事件触发
-    e.preventDefault(); // 防止默认行为
+    console.log("按钮点击事件触发！");
+    e.preventDefault();  // 阻止默认行为
+    
+    // 获取 baseUrl 和 data-url
     let baseUrl = window.domainList[window.currentDomainIndex];
     let path = $(this).attr("data-url");
-    let fullUrl = baseUrl + path;
-    console.log("拼接的跳转 URL:", fullUrl); // 输出拼接后的 URL
-  
+    
+    // 获取当前页面的 host (或其他相关参数)
+    var datas = window.location.host;
+    console.log("当前 host:", datas);
+
+    // 拼接目标 URL，并附加参数
+    let fullUrl = baseUrl + (path.startsWith("/") ? path : "/" + path);
+    fullUrl += `/#/?shareName=${datas || ""}&proxyAccount=${datas.proxyAccount || ""}`;
+
+    console.log("拼接的完整跳转 URL:", fullUrl);  // 输出拼接后的 URL
+
+    // 使用 window.open 进行跳转
     if (fullUrl) {
-      window.location.href = fullUrl; // 使用 window.location.href 进行跳转
+        window.open(fullUrl, "_blank");  // 打开新标签页
     }
-  });
+});
+
   
 
   // **初始化：检测当前域名状态**
