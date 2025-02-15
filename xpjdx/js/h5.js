@@ -76,6 +76,8 @@ function testCurrentDomain() {
         }
     });
 }
+// 启动时测试当前域名
+testCurrentDomain();
   /**
    * 🔗 **绑定点击事件**
    * 改为直接在 DOM 加载完成后绑定
@@ -105,9 +107,3 @@ function testCurrentDomain() {
           window.location.href = finalUrl;  // 使用 window.location.href 进行跳转
       }
   });
-
-// 启动时测试当前域名
-testCurrentDomain();
-      }
-  });
-});
