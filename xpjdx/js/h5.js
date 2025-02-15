@@ -3,7 +3,7 @@ $(document).ready(function () {
 
     // 备用域名列表（按优先级排序）
     window.domainList = [
-        'https://zt.p98703.vip',
+        'https://www.987631.vip',
         'https://zt.p98704.vip',
         'https://qp.ampj.x94751.vip',
         'https://qp.ampj.x96762.vip',
