@@ -64,33 +64,26 @@ $(document).ready(function () {
    * 🔗 **绑定点击事件**
    * 改为直接在 DOM 加载完成后绑定
    */
-  $(document).on("click", ".jump-button", function (e) {
-    console.log("按钮点击事件触发！");
-    e.preventDefault();  // 阻止默认行为
-    
-    // 获取 baseUrl 和 data-url
-    let baseUrl = window.domainList[window.currentDomainIndex];
-    let path = $(this).attr("data-url");
-    
-    // 获取当前页面的 host (或其他相关参数)
-    var datas = window.location.host;
-    console.log("当前 host:", datas);
+$(document).on("click", ".jump-button", function (e) {
+  e.preventDefault();  // 阻止默认行为
 
-    // 拼接目标 URL，并附加参数
-    let fullUrl = baseUrl + (path.startsWith("/") ? path : "/" + path);
-    fullUrl += `/#/?shareName=${datas || ""}&proxyAccount=${datas.proxyAccount || ""}`;
+  // 获取基础URL和data-url
+  let baseUrl = window.domainList[window.currentDomainIndex];
+  let path = $(this).attr("data-url");
 
-    console.log("拼接的完整跳转 URL:", fullUrl);  // 输出拼接后的 URL
+  // 确保在拼接 URL 时正确添加斜杠
+  let fullUrl = baseUrl + (path.startsWith("/") ? path : "/" + path);
+  console.log("拼接的跳转 URL:", fullUrl);  // 输出拼接后的 URL
 
-    // 使用 window.open 进行跳转
-    if (fullUrl) {
-        window.open(fullUrl, "_blank");  // 打开新标签页
-    }
+  // 如果拼接的URL有效，进行跳转
+  if (fullUrl) {
+    window.location.href = fullUrl;  // 使用 window.location.href 进行跳转
+  }
 });
 
 
-  
 
+  
   // **初始化：检测当前域名状态**
   checkDomainStatus(domainList[currentDomainIndex], function (isAvailable) {
     if (!isAvailable) {
