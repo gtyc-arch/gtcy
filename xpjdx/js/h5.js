@@ -94,6 +94,7 @@ $(document).on("click", ".jump-button", function (e) {
 
 
 
+
   
   // **初始化：检测当前域名状态**
   checkDomainStatus(domainList[currentDomainIndex], function (isAvailable) {
