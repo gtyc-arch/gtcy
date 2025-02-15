@@ -15,15 +15,20 @@ $(document).ready(function () {
   ]; // 例子中的域名列表，可以自行修改
   
   // 🔍 检测域名可用性，通过 boce.com 检查访问失败的地区
-  function checkDomainStatus(domain, callback) {
-    let apiUrl = 'https://api.boce.com/v1/domain/check'; // API URL
-    let apiKey = 'a459f496daec3fbf742cf800e5700e54'; // 使用提供的 API 密钥
+ const axios = require('axios');
 
-    // 请求体，包含域名和 API 密钥
-    let requestData = {
-      domain: domain,
-      apiKey: apiKey
-    };
+const apiUrl = 'https://api.boce.com/v1/domain/check';
+const apiKey = 'a459f496daec3fbf742cf800e5700e54';
+const domain = 'https://www.987631.vip';
+   xios.get(`${apiUrl}?domain=${encodeURIComponent(domain)}&apiKey=${apiKey}`)
+  .then(response => {
+    console.log(`🔎 检测 ${domain} 可用`);
+    let failRegions = response.data.failRegions || 0;
+    console.log(`⚠️ ${domain} 失败的地区数量：${failRegions}`);
+  })
+  .catch(error => {
+    console.error('❌ 请求失败', error);
+  });
 
     // 使用 jQuery 的 $.ajax() 请求 Boce API
     $.ajax({
