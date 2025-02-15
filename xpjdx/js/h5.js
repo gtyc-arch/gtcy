@@ -12,7 +12,7 @@ $(document).ready(function () {
       'https://qp.ampj.x95793.vip'
   ];
 
-  window.currentDomainIndex = 0;  // 当前使用的域名索引
+ window.currentDomainIndex = 0;  // 当前使用的域名索引
 let failCount = 0;  // 失败计数器
 const maxFailCount = 5;  // 失败地区超过 5 个就切换域名
 
@@ -73,8 +73,6 @@ function switchDomain() {
         });
     }
 }
-
-
   /**
    * 🔗 **绑定点击事件**
    * 改为直接在 DOM 加载完成后绑定
