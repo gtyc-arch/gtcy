@@ -15,11 +15,8 @@ let domainList = [
 // 当前正在使用的备用域名索引
 let currentDomainIndex = 0;
 
-    /**
-     * 🔍 **检测域名可用性**
-     * 通过 https://www.itdog.cn/http/ 进行检测
-     */
-    function checkDomainAvailability(domain) {
+// 功能：检测指定的域名访问情况
+function checkDomainAvailability(domain) {
     return fetch(`https://www.itdog.cn/http/${domain}`)
         .then(response => response.json()) // 假设返回的是JSON格式
         .then(data => {
@@ -53,7 +50,6 @@ async function autoSwitchDomain() {
 
 // 定时检查域名的可用性
 setInterval(autoSwitchDomain, 60000); // 每1分钟检测一次
-
     /**
      * 🔗 **绑定点击事件**
      * 改为直接在 DOM 加载完成后绑定
