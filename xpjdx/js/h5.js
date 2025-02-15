@@ -16,35 +16,35 @@ $(document).ready(function () {
   
 // 🔍 检测域名可用性，通过 https://www.itdog.cn/http/ 检查访问失败的地区
 function checkDomainStatus(domain, callback) {
-  let proxyUrl = "https://cors-anywhere.herokuapp.com/"; // CORS 代理
-  let checkUrl = proxyUrl + `https://www.itdog.cn/http/${domain}`;
-  
-  $.get(checkUrl, function (data) {
-      console.log(`🔎 检测 ${domain} 可用`);
+    let proxyUrl = "https://cors-anywhere.herokuapp.com/"; // CORS 代理
+    let checkUrl = proxyUrl + `https://www.itdog.cn/http/${domain}`;
+    
+    $.get(checkUrl, function (data) {
+        console.log(`🔎 检测 ${domain} 可用`);
 
    // 解析返回的结果，找出失败的地区
    let failRegions = 0;
    // 假设返回的 data 包含失败的地区信息
    // 这里是一个例子，你需要根据实际返回的数据格式做修改
-   const regions = data.match(/访问失败/g) || []; // 查找 "访问失败" 的地区
-   failRegions = regions.length;
+        const regions = data.match(/访问失败/g) || []; // 查找 "访问失败" 的地区
+        failRegions = regions.length;
 
    console.log(`⚠️ ${domain} 失败的地区数量：${failRegions}`);
 
    // 判断失败的地区数量
-   if (failRegions >= maxFailCount) {
-       failCount++;
-       console.warn(`⚠️ ${domain} 访问失败超过 ${maxFailCount} 个地区，切换域名 (${failCount}/${maxFailCount})`);
-       callback(false); // 失败，触发切换域名
-   } else {
-       console.log(`✅ ${domain} 可用！`);
-       callback(true); // 成功，继续使用当前域名
-   }
-}).fail(function () {
-   failCount++;
-   console.error(`❌ ${domain} 检测失败 (${failCount}/${maxFailCount})`);
-   callback(false); // 失败，触发切换域名
-});
+  if (failRegions >= maxFailCount) {
+            failCount++;
+            console.warn(`⚠️ ${domain} 访问失败超过 ${maxFailCount} 个地区，切换域名 (${failCount}/${maxFailCount})`);
+            callback(false);
+        } else {
+            console.log(`✅ ${domain} 可用！`);
+            callback(true);
+        }
+    }).fail(function () {
+        failCount++;
+        console.error(`❌ ${domain} 检测失败 (${failCount}/${maxFailCount})`);
+        callback(false);
+    });
 }
 
 console.log("✅ h5.js 已成功加载");
