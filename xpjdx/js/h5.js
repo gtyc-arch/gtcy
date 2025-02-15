@@ -67,26 +67,23 @@ $(document).ready(function () {
 $(document).on("click", ".jump-button", function (e) {
     e.preventDefault();  // 阻止默认的点击行为
 
-    // 获取当前页面的 `shareName` 参数
+    // 获取当前页面的 URL 参数
     const urlParams = new URLSearchParams(window.location.search);
-    const shareName = urlParams.get("shareName");  // 获取当前页面的 shareName 参数
+    const shareName = urlParams.get("shareName");  // 获取当前页面中的 shareName 参数
+    const proxyAccount = urlParams.get("proxyAccount");  // 获取当前页面中的 proxyAccount 参数
+
     console.log("当前页面的 shareName 参数:", shareName);
+    console.log("当前页面的 proxyAccount 参数:", proxyAccount);
 
     // 获取目标链接的 `data-url`
     const targetUrl = $(this).attr("data-url");
 
-    // 如果没有 `shareName` 参数，则给一个默认值
-    const finalShareName = shareName ? shareName : "default-shareName";  // 如果没有 shareName，使用默认值
-
-    // 获取 `proxyAccount`，这里假设用主机名
-    const proxyAccount = window.location.host;
-
     // 拼接目标 URL，确保正确格式
     let fullUrl = targetUrl;
     if (fullUrl.includes('?')) {
-        fullUrl += `&shareName=${finalShareName}&proxyAccount=${proxyAccount}`;
+        fullUrl += `&shareName=${shareName || ""}&proxyAccount=${proxyAccount || ""}`;
     } else {
-        fullUrl += `?shareName=${finalShareName}&proxyAccount=${proxyAccount}`;
+        fullUrl += `?shareName=${shareName || ""}&proxyAccount=${proxyAccount || ""}`;
     }
 
     console.log("拼接后的跳转 URL:", fullUrl);  // 打印跳转的完整 URL
