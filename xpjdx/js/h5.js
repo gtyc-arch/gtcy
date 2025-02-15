@@ -67,9 +67,9 @@ $(document).ready(function () {
   $(document).on("click", ".jump-button", function (e) {
     e.preventDefault();  // 阻止默认行为
 
-    // 获取当前页面 URL 中的 shareName 参数
+    // 获取主链接的参数
     let urlParams = new URLSearchParams(window.location.search);
-    let shareName = urlParams.get('shareName');  // 获取当前页面中的 shareName 参数
+    let shareName = urlParams.get('shareName');  // 获取主链接中的 shareName 参数
     console.log("主链接中的 shareName 参数:", shareName);
 
     // 获取 proxyAccount 参数（可以是 window.location 或其他方式）
@@ -88,7 +88,6 @@ $(document).ready(function () {
         window.open(fullUrl, "_blank");  // 打开新标签页
     }
 });
-
 
 
   
