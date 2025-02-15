@@ -65,48 +65,21 @@ $(document).ready(function () {
    * 改为直接在 DOM 加载完成后绑定
    */
 $(document).on("click", ".jump-button", function (e) {
-    e.preventDefault();  // 阻止默认的点击行为
+  e.preventDefault();  // 阻止默认行为
 
-    // 获取当前页面的 URL 参数
-    const urlParams = new URLSearchParams(window.location.search);
-    const shareName = urlParams.get("shareName");  // 获取当前页面中的 shareName 参数
-    const proxyAccount = urlParams.get("proxyAccount");  // 获取当前页面中的 proxyAccount 参数
+  // 获取基础URL和data-url
+  let baseUrl = window.domainList[window.currentDomainIndex];
+  let path = $(this).attr("data-url");
 
-    console.log("当前页面的 shareName 参数:", shareName);
-    console.log("当前页面的 proxyAccount 参数:", proxyAccount);
+  // 确保在拼接 URL 时正确添加斜杠
+  let fullUrl = baseUrl + (path.startsWith("/") ? path : "/" + path);
+  console.log("拼接的跳转 URL:", fullUrl);  // 输出拼接后的 URL
 
-    // 获取目标链接的 `data-url`
-    const targetUrl = $(this).attr("data-url");
-
-    // 确保 targetUrl 是有效的
-    if (!targetUrl) {
-        console.error("目标 URL（data-url）不存在");
-        return;
-    }
-
-    // 拼接目标 URL，确保正确格式
-    let fullUrl = targetUrl;
-
-    // 拼接 URL 参数
-    const urlParams = new URLSearchParams(window.location.search);
-    const shareNameParam = urlParams.get("shareName");
-    const proxyAccountParam = urlParams.get("proxyAccount");
-
-    let newUrl = targetUrl;
-    if (newUrl.indexOf('?') === -1) {
-        newUrl += `?shareName=${shareNameParam || ""}&proxyAccount=${proxyAccountParam || ""}`;
-    } else {
-        newUrl += `&shareName=${shareNameParam || ""}&proxyAccount=${proxyAccountParam || ""}`;
-    }
-
-    console.log("拼接后的跳转 URL:", newUrl);  // 打印拼接后的 URL
-
-    // 跳转到拼接后的 URL
-    window.open(newUrl, "_blank");  // 使用 `window.open` 打开新标签页
+  // 如果拼接的URL有效，进行跳转
+  if (fullUrl) {
+    window.location.href = fullUrl;  // 使用 window.location.href 进行跳转
+  }
 });
-
-
-
 
 
 
