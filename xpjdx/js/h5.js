@@ -13,58 +13,67 @@ $(document).ready(function () {
   ];
 
   window.currentDomainIndex = 0;  // 当前使用的域名索引
+let failCount = 0;  // 失败计数器
+const maxFailCount = 5;  // 失败地区超过 5 个就切换域名
 
-  /**
-   * 🔍 **检测域名可用性**
-   * 通过 https://www.itdog.cn/http/ 进行检测
-   */
- function testDomainAvailability(domain) {
-  return new Promise((resolve, reject) => {
-    $.get('https://www.itdog.cn/http/' + domain, function(response) {
-      let failedRegions = 0;
-      // 假设返回的数据中，有一个`regions`数组，包含访问结果
-      response.regions.forEach(region => {
-        if (region.status === '失败') {
-          failedRegions++;
+/**
+ * 🔍 **检测域名可用性**
+ * 通过 https://www.itdog.cn/http/ 进行检测，检测失败的地区数
+ */
+function checkDomainStatus(domain, callback) {
+    let proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    let checkUrl = proxyUrl + `https://www.itdog.cn/http/${domain}`;
+
+    $.get(checkUrl, function (data) {
+        console.log(data);
+        
+        // 从返回的数据中提取访问失败地区的数量
+        const failRegionsCount = (data.match(/访问失败/g) || []).length; // 查找所有 "访问失败" 的出现次数
+
+        console.log(`🔎 检测 ${domain} 可用，访问失败地区数：${failRegionsCount}`);
+
+        // 如果访问失败的地区数超过 maxFailCount，则切换域名
+        if (failRegionsCount >= maxFailCount) {
+            failCount++;
+            console.warn(`⚠️ ${domain} 访问失败地区数超过 ${maxFailCount}，切换域名！`);
+            callback(false);
+        } else {
+            console.log(`✅ ${domain} 正常可用！`);
+            callback(true);
         }
-      });
-
-      // 如果访问失败的地区数大于等于5，就认为此域名不可用
-      if (failedRegions >= 5) {
-        reject('访问失败地区超过5个');
-      } else {
-        resolve('域名可用');
-      }
-    }).fail(function() {
-      reject('测速请求失败');
-    });
-  });
-}
-
-// 切换域名函数
-function switchToNextDomain() {
-  currentDomainIndex++;
-  if (currentDomainIndex >= domainList.length) {
-    alert("所有域名均不可用，请检查网络");
-    return;
-  }
-
-  let currentDomain = domainList[currentDomainIndex];
-  console.log("正在检测域名：", currentDomain);
-
-  // 测试当前域名
-  testDomainAvailability(currentDomain)
-    .then(function(successMessage) {
-      console.log(successMessage);
-      // 如果域名可用，继续使用当前域名
-      window.location.href = currentDomain + "/#/?shareName=" + currentDomain;
-    })
-    .catch(function(errorMessage) {
-      console.log(errorMessage);
-      // 如果域名不可用，切换到下一个域名
-      switchToNextDomain();
+    }).fail(function () {
+        failCount++;
+        console.error(`❌ ${domain} 检测失败 (${failCount}/${maxFailCount})`);
+        callback(false);
     });
 }
+
+console.log("✅ h5.js 已成功加载");
+
+/**
+ * 🔄 **切换到下一个可用域名**
+ */
+function switchDomain() {
+    if (failCount >= maxFailCount) {
+        failCount = 0;  // 重置失败计数
+        currentDomainIndex++;  // 切换到下一个域名
+
+        // 判断是否还有域名可用
+        if (currentDomainIndex >= domainList.length) {
+            console.error("❌ 所有域名都不可用，请检查网络！");
+            return;
+        }
+
+        console.log(`🔀 切换到下一个域名：${domainList[currentDomainIndex]}`);
+        // 开始检测下一个域名
+        checkDomainStatus(domainList[currentDomainIndex], function(isAvailable) {
+            if (!isAvailable) {
+                switchDomain();  // 如果下一个域名仍不可用，继续切换
+            }
+        });
+    }
+}
+
 
   /**
    * 🔗 **绑定点击事件**
