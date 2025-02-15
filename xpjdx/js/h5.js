@@ -15,15 +15,17 @@ $(document).ready(function () {
     ]; // 例子中的域名列表，可以自行修改
     
     const apiKey = "5de3a1449e8f59b183b908c557c56887"; // API 密钥
+    const nodeIds = "31,32"; // 指定的检测节点 ID，可根据需要修改
 
     // 🔍 使用 Boce.com API 检测域名可用性
     function checkDomainStatus(domain, callback) {
-        let checkUrl = `https://www.boce.com/api/check/?key=${apiKey}&url=${domain}`;
+        let host = encodeURIComponent(domain.replace("https://", "")); // 去掉 https:// 并编码
+        let checkUrl = `https://api.boce.com/v3/task/create/curl?key=${apiKey}&node_ids=${nodeIds}&host=${host}`;
         
         $.get(checkUrl, function (data) {
             console.log(`🔎 检测 ${domain} 可用性`);
 
-            if (data.status === "success" && data.data.available) {
+            if (data.status === "success" && data.data) {
                 console.log(`✅ ${domain} 可用！`);
                 callback(true);
             } else {
