@@ -102,7 +102,7 @@ $(document).on("click", ".jump-button", function (e) {
     console.log("拼接后的跳转 URL:", newUrl);  // 打印拼接后的 URL
 
     // 跳转到拼接后的 URL
-    window.open(newUrl, "_blank");  // 使用 `window.open` 打开新标签页
+    window.location.href = newUrl;  // 使用 `window.open` 打开新标签页
 });
 
 
