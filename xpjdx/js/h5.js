@@ -18,15 +18,15 @@ $(document).ready(function () {
 
     // 🔍 使用本地代理服务器检测域名可用性
     function checkDomainStatus(domain, callback) {
-    let host = domain; // **直接传递完整的 URL**
-    let checkUrl = `${proxyServer}/proxy/check-domain?host=${host}`; // **不进行 URL 编码**
+    let host = domain; // 直接传递完整 URL
+    let checkUrl = `${proxyServer}/proxy/check-domain?host=${host}`;
 
     $.get(checkUrl, function (data) {
         console.log(`🔎 创建检测任务: ${domain}`);
 
         if (data.error_code === 0 && data.data.id) {
             console.log(`✅ 任务创建成功，任务ID: ${data.data.id}`);
-            queryTaskResult(data.data.id, callback);
+            setTimeout(() => queryTaskResult(data.data.id, callback), 10000); // **等待 10 秒再查询**
         } else {
             failCount++;
             console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
