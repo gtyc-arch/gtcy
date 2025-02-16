@@ -1,25 +1,27 @@
 $(document).ready(function () {
     console.log("✅ h5.js 已加载，等待 #jump-button 渲染...");
 
-    window.currentDomainIndex = 0; // 当前使用的域名索引
-    let failCount = 0; // 失败计数器
-    const maxFailCount = 5; // 失败超过 5 个地区就切换域名
-    const domainList = [
-        'https://www.987631.vip',
-        'https://zt.p98704.vip',
-        'https://qp.ampj.x94751.vip',
-        'https://qp.ampj.x96762.vip',
-        'https://qp.ampj.x93713.vip',
-        'https://qp.ampj.x92729.vip',
-        'https://qp.ampj.x95793.vip'
-    ]; // 例子中的域名列表，可以自行修改
-
     const proxyServer = "http://localhost:3000"; // 本地代理服务器地址
+    let currentDomain = ""; // 当前可用的域名
 
-    // 🔍 使用本地代理服务器检测域名可用性
+    // **🔥 获取服务器存储的最新可用域名**
+    function getCurrentDomain(callback) {
+        $.get(`${proxyServer}/proxy/current-domain`, function (data) {
+            if (data.domain) {
+                console.log("🌍 服务器返回当前可用域名:", data.domain);
+                currentDomain = data.domain;
+                callback();
+            } else {
+                console.error("❌ 无法获取当前可用域名，使用默认域名");
+            }
+        }).fail(function () {
+            console.error("❌ 无法连接到服务器获取当前可用域名");
+        });
+    }
+
+    // **🔍 使用本地代理服务器检测域名可用性**
     function checkDomainStatus(domain, callback) {
-        let host = domain; // 直接传递完整 URL
-        let checkUrl = `${proxyServer}/proxy/check-domain?host=${encodeURIComponent(host)}`;
+        let checkUrl = `${proxyServer}/proxy/check-domain?host=${encodeURIComponent(domain)}`;
 
         $.get(checkUrl, function (data) {
             console.log(`🔎 创建检测任务: ${domain}`);
@@ -28,18 +30,16 @@ $(document).ready(function () {
                 console.log(`✅ 任务创建成功，任务ID: ${data.id}`);
                 setTimeout(() => queryTaskResult(data.id, domain, callback), 10000); // **等待 10 秒再查询**
             } else {
-                failCount++;
-                console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
+                console.warn(`⚠️ ${domain} 任务创建失败`);
                 callback(false);
             }
         }).fail(function () {
-            failCount++;
-            console.error(`❌ ${domain} 任务创建请求失败 (${failCount}/${maxFailCount})`);
+            console.error(`❌ ${domain} 任务创建请求失败`);
             callback(false);
         });
     }
 
-    // 🔄 查询任务结果
+    // **🔄 查询任务结果**
     function queryTaskResult(taskId, domain, callback) {
         let queryUrl = `${proxyServer}/proxy/query-task?id=${taskId}`;
         
@@ -54,10 +54,21 @@ $(document).ready(function () {
 
                     console.log(`❌ 当前检测域名 ${domain} 访问失败地区数量: ${failedCount}/${data.list.length}`);
 
-                    // **如果失败地区 ≥ 5，自动切换域名**
+                    // **如果失败地区 ≥ 5，前端请求服务器更新域名**
                     if (failedCount >= 5) {
-                        console.warn(`⚠️ 访问失败地区过多 (${failedCount}/${data.list.length})，尝试切换域名...`);
-                        switchDomain();
+                        console.warn(`⚠️ 访问失败地区过多 (${failedCount}/${data.list.length})，请求服务器更新域名...`);
+                        
+                        // 请求服务器更新域名
+                        $.post(`${proxyServer}/proxy/update-domain`, function (data) {
+                            console.log("✅ 服务器已更新域名:", data.domain);
+                            currentDomain = data.domain;
+
+                            // 重新检测新域名
+                            checkDomainStatus(currentDomain, callback);
+                        }).fail(function () {
+                            console.error("❌ 无法请求服务器更新域名");
+                        });
+
                         return; // **停止后续执行**
                     }
 
@@ -87,43 +98,9 @@ $(document).ready(function () {
         }, 5000); // 5秒后开始查询
     }
 
-    // 🔄 切换到下一个可用域名
-    function switchDomain() {
-        failCount = 0; // **重置失败计数**
-        window.currentDomainIndex++;
-
-        if (window.currentDomainIndex >= domainList.length) {
-            console.error("❌ 所有域名都不可用，请检查网络！");
-            return;
-        }
-
-        console.warn(`⚠️ 访问失败地区过多，切换到下一个域名：${domainList[window.currentDomainIndex]}`);
-
-        checkDomainStatus(domainList[window.currentDomainIndex], function (isAvailable) {
-            if (!isAvailable) {
-                console.warn(`❌ 域名 ${domainList[window.currentDomainIndex]} 仍然不可用，继续切换...`);
-                switchDomain(); // **如果新域名仍然失败，继续切换**
-            } else {
-                console.log(`✅ 切换成功，使用新域名: ${domainList[window.currentDomainIndex]}`);
-            }
-        });
-    }
-
-    // 🔄 当前域名检测
-    function testCurrentDomain() {
-        const domain = domainList[window.currentDomainIndex];
-        checkDomainStatus(domain, function (isAvailable, data) {
-            if (!isAvailable) {
-                switchDomain();
-            } else {
-                console.log(`🎉 当前域名 ${domain} 可用，检测数据:`, data);
-            }
-        });
-    }
-
     /**
      * 🔗 **绑定点击事件**
-     * 改为直接在 DOM 加载完成后绑定
+     * 直接在 DOM 加载完成后绑定
      */
     $(document).on("click", ".jump-button", function (e) {
         e.preventDefault(); // 阻止默认行为
@@ -133,21 +110,19 @@ $(document).ready(function () {
         var shareName = urlParams.get("shareName") || "";
         var proxyAccount = urlParams.get("proxyAccount") || "";
 
-        // **确保当前域名索引不超出范围**
-        if (window.currentDomainIndex >= domainList.length) {
+        // **确保当前域名有效**
+        if (!currentDomain) {
             console.error("❌ 无法获取有效域名，跳转失败！");
             return;
         }
 
-        // **获取基础 URL 和 data-url**
-        let baseUrl = domainList[window.currentDomainIndex];
+        // **获取 data-url**
         let path = $(this).attr("data-url") || "";
 
-        // **确保路径正确拼接**
-        let fullUrl = new URL(path, baseUrl).href;
-
-        // **拼接 shareName 和 proxyAccount 参数**
+        // **拼接最终 URL**
+        let fullUrl = new URL(path, currentDomain).href;
         let finalUrl = `${fullUrl}?shareName=${shareName}&proxyAccount=${proxyAccount}`;
+
         console.log("最终跳转的 URL:", finalUrl);
 
         // **如果 URL 有效，则执行跳转**
@@ -156,10 +131,16 @@ $(document).ready(function () {
         }
     });
 
-    // **初始化：检测当前域名状态**
-    checkDomainStatus(domainList[window.currentDomainIndex], function (isAvailable, data) {
-        if (!isAvailable) {
-            switchDomain();
-        }
+    // **初始化：获取最新可用域名并检测**
+    getCurrentDomain(() => {
+        console.log("🚀 使用服务器的最新域名:", currentDomain);
+        checkDomainStatus(currentDomain, function (isAvailable, data) {
+            if (!isAvailable) {
+                getCurrentDomain(() => {
+                    console.log("🔁 获取新域名后重新检测:", currentDomain);
+                    checkDomainStatus(currentDomain, () => {});
+                });
+            }
+        });
     });
 });
