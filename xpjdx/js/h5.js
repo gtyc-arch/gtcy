@@ -17,48 +17,30 @@ $(document).ready(function () {
     const proxyServer = "http://localhost:3000"; // 本地代理服务器地址
 
     // 🔍 使用本地代理服务器检测域名可用性
-    function queryTaskResult(taskId, callback) {
-    let queryUrl = `http://localhost:3000/proxy/query-task?id=${taskId}`;
-    
-    setTimeout(function () {
-        $.get(queryUrl, function (data) {
-            if (data.done && data.list && data.list.length > 0) {
-                console.log(`✅ 任务 ${taskId} 完成, 结果:`, data.list);
+    function checkDomainStatus(domain, callback) {
+        let host = domain; // 直接传递完整 URL
+        let checkUrl = `${proxyServer}/proxy/check-domain?host=${encodeURIComponent(host)}`;
 
-                // **统计当前检测域名的访问失败地区数量**
-                let failedRegions = data.list.filter(node => node.http_code === 0);
-                let failedCount = failedRegions.length;
-                
-                console.log(`❌ 当前检测域名 ${data.list[0].host} 访问失败地区数量: ${failedCount}/${data.list.length}`);
+        $.get(checkUrl, function (data) {
+            console.log(`🔎 创建检测任务: ${domain}`);
 
-                // **把检测结果渲染到页面**
-                let resultHTML = `<h3>检测结果</h3><p>❌ 当前检测域名 ${data.list[0].host} 访问失败地区数量: ${failedCount}/${data.list.length}</p><ul>`;
-                data.list.forEach(node => {
-                    resultHTML += `
-                        <li>
-                            <strong>节点：</strong> ${node.node_name} (${node.node_id})<br>
-                            <strong>HTTP 状态：</strong> ${node.http_code} <br>
-                            <strong>解析 IP：</strong> ${node.remote_ip || "N/A"} <br>
-                            <strong>下载速度：</strong> ${node.speed_download} bytes/s <br>
-                            <strong>总时间：</strong> ${node.time_total} 秒
-                        </li><hr>`;
-                });
-                resultHTML += "</ul>";
-                $("#check-results").html(resultHTML); // 显示在网页上
-                callback(true, data.list);
+            if (data.id) {
+                console.log(`✅ 任务创建成功，任务ID: ${data.id}`);
+                setTimeout(() => queryTaskResult(data.id, domain, callback), 10000); // **等待 10 秒再查询**
             } else {
-                console.warn(`⌛ 任务 ${taskId} 未完成，稍后重试`);
-                setTimeout(() => queryTaskResult(taskId, callback), 5000); // 5秒后重试
+                failCount++;
+                console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
+                callback(false);
             }
         }).fail(function () {
-            console.error(`❌ 查询任务 ${taskId} 失败`);
+            failCount++;
+            console.error(`❌ ${domain} 任务创建请求失败 (${failCount}/${maxFailCount})`);
             callback(false);
         });
-    }, 5000); // 5秒后开始查询
-}
+    }
 
     // 🔄 查询任务结果
-    function queryTaskResult(taskId, callback) {
+    function queryTaskResult(taskId, domain, callback) {
         let queryUrl = `${proxyServer}/proxy/query-task?id=${taskId}`;
         
         setTimeout(function () {
@@ -66,14 +48,20 @@ $(document).ready(function () {
                 if (data.done && data.list && data.list.length > 0) {
                     console.log(`✅ 任务 ${taskId} 完成, 结果:`, data.list);
 
+                    // **统计当前检测域名的访问失败地区数量**
+                    let failedRegions = data.list.filter(node => node.http_code === 0);
+                    let failedCount = failedRegions.length;
+
+                    console.log(`❌ 当前检测域名 ${domain} 访问失败地区数量: ${failedCount}/${data.list.length}`);
+
                     // **把检测结果渲染到页面**
-                    let resultHTML = "<h3>检测结果</h3><ul>";
+                    let resultHTML = `<h3>检测结果</h3><p>❌ 当前检测域名 ${domain} 访问失败地区数量: ${failedCount}/${data.list.length}</p><ul>`;
                     data.list.forEach(node => {
                         resultHTML += `
                             <li>
                                 <strong>节点：</strong> ${node.node_name} (${node.node_id})<br>
                                 <strong>HTTP 状态：</strong> ${node.http_code} <br>
-                                <strong>解析 IP：</strong> ${node.remote_ip} <br>
+                                <strong>解析 IP：</strong> ${node.remote_ip || "N/A"} <br>
                                 <strong>下载速度：</strong> ${node.speed_download} bytes/s <br>
                                 <strong>总时间：</strong> ${node.time_total} 秒
                             </li><hr>`;
@@ -83,7 +71,7 @@ $(document).ready(function () {
                     callback(true, data.list);
                 } else {
                     console.warn(`⌛ 任务 ${taskId} 未完成，稍后重试`);
-                    setTimeout(() => queryTaskResult(taskId, callback), 5000); // 5秒后重试
+                    setTimeout(() => queryTaskResult(taskId, domain, callback), 5000); // 5秒后重试
                 }
             }).fail(function () {
                 console.error(`❌ 查询任务 ${taskId} 失败`);
