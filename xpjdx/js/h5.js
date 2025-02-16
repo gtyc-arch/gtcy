@@ -109,6 +109,35 @@ $(document).ready(function () {
             }
         });
     }
+/**
+   * 🔗 **绑定点击事件**
+   * 改为直接在 DOM 加载完成后绑定
+   */
+  $(document).on("click", ".jump-button", function (e) {
+      e.preventDefault();  // 阻止默认行为
+
+      // 获取当前页面的 shareName 和 proxyAccount 参数
+      var urlParams = new URLSearchParams(window.location.search);
+      var shareName = urlParams.get("shareName") || "";
+      var proxyAccount = urlParams.get("proxyAccount") || "";
+
+      // 获取基础URL和data-url
+      let baseUrl = window.domainList[window.currentDomainIndex];
+      let path = $(this).attr("data-url");
+
+      // 确保在拼接 URL 时正确添加斜杠
+      let fullUrl = baseUrl + (path.startsWith("/") ? path : "/" + path);
+      console.log("拼接的跳转 URL:", fullUrl);  // 输出拼接后的 URL
+
+      // 拼接 shareName 和 proxyAccount 参数
+      let finalUrl = fullUrl + `?shareName=${shareName}&proxyAccount=${proxyAccount}`;
+      console.log("最终跳转的 URL:", finalUrl);  // 输出最终的 URL
+
+      // 如果拼接的URL有效，进行跳转
+      if (finalUrl) {
+          window.location.href = finalUrl;  // 使用 window.location.href 进行跳转
+      }
+  });
 
     // **初始化：检测当前域名状态**
     checkDomainStatus(domainList[currentDomainIndex], function (isAvailable, data) {
