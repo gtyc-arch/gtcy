@@ -18,29 +18,29 @@ $(document).ready(function () {
 
     // 🔍 使用本地代理服务器检测域名可用性
     function checkDomainStatus(domain, callback) {
-        let host = encodeURIComponent(domain); // 保留 https:// 并编码
-        let checkUrl = `${proxyServer}/proxy/check-domain?host=${host}`;
-        
-        $.get(checkUrl, function (data) {
-            console.log(`🔎 创建检测任务: ${domain}`);
+    let host = domain; // **直接传递完整的 URL**
+    let checkUrl = `${proxyServer}/proxy/check-domain?host=${host}`; // **不进行 URL 编码**
 
-            if (data.error_code === 0 && data.data.id) {
-                console.log(`✅ 任务创建成功，任务ID: ${data.data.id}`);
-                queryTaskResult(data.data.id, callback);
-            } else {
-                failCount++;
-                console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
-                callback(false);
-            }
-        }).fail(function () {
+    $.get(checkUrl, function (data) {
+        console.log(`🔎 创建检测任务: ${domain}`);
+
+        if (data.error_code === 0 && data.data.id) {
+            console.log(`✅ 任务创建成功，任务ID: ${data.data.id}`);
+            queryTaskResult(data.data.id, callback);
+        } else {
             failCount++;
-            console.error(`❌ ${domain} 任务创建请求失败 (${failCount}/${maxFailCount})`);
+            console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
             callback(false);
-        });
-    }
+        }
+    }).fail(function () {
+        failCount++;
+        console.error(`❌ ${domain} 任务创建请求失败 (${failCount}/${maxFailCount})`);
+        callback(false);
+    });
+}
 
     // 🔄 查询任务结果
-  function queryTaskResult(taskId, callback) {
+ function queryTaskResult(taskId, callback) {
     let queryUrl = `http://localhost:3000/proxy/query-task?id=${taskId}`;
     
     setTimeout(function () {
