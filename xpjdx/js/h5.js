@@ -40,7 +40,7 @@ $(document).ready(function () {
     }
 
     // 🔄 查询任务结果
-    function queryTaskResult(taskId, domain, callback) {
+   function queryTaskResult(taskId, domain, callback) {
     let queryUrl = `${proxyServer}/proxy/query-task?id=${taskId}`;
     
     setTimeout(function () {
@@ -54,11 +54,11 @@ $(document).ready(function () {
 
                 console.log(`❌ 当前检测域名 ${domain} 访问失败地区数量: ${failedCount}/${data.list.length}`);
 
-                // **如果失败地区超过 5 个，自动切换域名**
+                // **如果失败地区 >= 5，自动切换域名**
                 if (failedCount >= 5) {
-                    console.warn(`⚠️ 访问失败地区过多 (${failedCount}/41)，尝试切换域名...`);
+                    console.warn(`⚠️ 访问失败地区过多 (${failedCount}/${data.list.length})，尝试切换域名...`);
                     switchDomain();
-                    return;
+                    return; // **停止后续执行**
                 }
 
                 // **把检测结果渲染到页面**
