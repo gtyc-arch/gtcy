@@ -40,69 +40,73 @@ $(document).ready(function () {
     }
 
     // 🔄 查询任务结果
-   function queryTaskResult(taskId, domain, callback) {
-    let queryUrl = `${proxyServer}/proxy/query-task?id=${taskId}`;
-    
-    setTimeout(function () {
-        $.get(queryUrl, function (data) {
-            if (data.done && data.list && data.list.length > 0) {
-                console.log(`✅ 任务 ${taskId} 完成, 结果:`, data.list);
+    function queryTaskResult(taskId, domain, callback) {
+        let queryUrl = `${proxyServer}/proxy/query-task?id=${taskId}`;
+        
+        setTimeout(function () {
+            $.get(queryUrl, function (data) {
+                if (data.done && data.list && data.list.length > 0) {
+                    console.log(`✅ 任务 ${taskId} 完成, 结果:`, data.list);
 
-                // **统计当前检测域名的访问失败地区数量**
-                let failedRegions = data.list.filter(node => node.http_code === 0);
-                let failedCount = failedRegions.length;
+                    // **统计当前检测域名的访问失败地区数量**
+                    let failedRegions = data.list.filter(node => node.http_code === 0);
+                    let failedCount = failedRegions.length;
 
-                console.log(`❌ 当前检测域名 ${domain} 访问失败地区数量: ${failedCount}/${data.list.length}`);
+                    console.log(`❌ 当前检测域名 ${domain} 访问失败地区数量: ${failedCount}/${data.list.length}`);
 
-                // **如果失败地区 >= 5，自动切换域名**
-                if (failedCount >= 5) {
-                    console.warn(`⚠️ 访问失败地区过多 (${failedCount}/${data.list.length})，尝试切换域名...`);
-                    switchDomain();
-                    return; // **停止后续执行**
+                    // **如果失败地区 ≥ 5，自动切换域名**
+                    if (failedCount >= 5) {
+                        console.warn(`⚠️ 访问失败地区过多 (${failedCount}/${data.list.length})，尝试切换域名...`);
+                        switchDomain();
+                        return; // **停止后续执行**
+                    }
+
+                    // **把检测结果渲染到页面**
+                    let resultHTML = `<h3>检测结果</h3><p>❌ 当前检测域名 ${domain} 访问失败地区数量: ${failedCount}/${data.list.length}</p><ul>`;
+                    data.list.forEach(node => {
+                        resultHTML += `
+                            <li>
+                                <strong>节点：</strong> ${node.node_name} (${node.node_id})<br>
+                                <strong>HTTP 状态：</strong> ${node.http_code} <br>
+                                <strong>解析 IP：</strong> ${node.remote_ip || "N/A"} <br>
+                                <strong>下载速度：</strong> ${node.speed_download} bytes/s <br>
+                                <strong>总时间：</strong> ${node.time_total} 秒
+                            </li><hr>`;
+                    });
+                    resultHTML += "</ul>";
+                    $("#check-results").html(resultHTML); // 显示在网页上
+                    callback(true, data.list);
+                } else {
+                    console.warn(`⌛ 任务 ${taskId} 未完成，稍后重试`);
+                    setTimeout(() => queryTaskResult(taskId, domain, callback), 5000); // 5秒后重试
                 }
-
-                // **把检测结果渲染到页面**
-                let resultHTML = `<h3>检测结果</h3><p>❌ 当前检测域名 ${domain} 访问失败地区数量: ${failedCount}/${data.list.length}</p><ul>`;
-                data.list.forEach(node => {
-                    resultHTML += `
-                        <li>
-                            <strong>节点：</strong> ${node.node_name} (${node.node_id})<br>
-                            <strong>HTTP 状态：</strong> ${node.http_code} <br>
-                            <strong>解析 IP：</strong> ${node.remote_ip || "N/A"} <br>
-                            <strong>下载速度：</strong> ${node.speed_download} bytes/s <br>
-                            <strong>总时间：</strong> ${node.time_total} 秒
-                        </li><hr>`;
-                });
-                resultHTML += "</ul>";
-                $("#check-results").html(resultHTML); // 显示在网页上
-                callback(true, data.list);
-            } else {
-                console.warn(`⌛ 任务 ${taskId} 未完成，稍后重试`);
-                setTimeout(() => queryTaskResult(taskId, domain, callback), 5000); // 5秒后重试
-            }
-        }).fail(function () {
-            console.error(`❌ 查询任务 ${taskId} 失败`);
-            callback(false);
-        });
-    }, 5000); // 5秒后开始查询
-}
-
-    console.log("✅ h5.js 已成功加载");
+            }).fail(function () {
+                console.error(`❌ 查询任务 ${taskId} 失败`);
+                callback(false);
+            });
+        }, 5000); // 5秒后开始查询
+    }
 
     // 🔄 切换到下一个可用域名
     function switchDomain() {
-        if (failCount >= maxFailCount) {
-            failCount = 0; // 重置失败计数
-            window.currentDomainIndex++;
+        failCount = 0; // **重置失败计数**
+        window.currentDomainIndex++;
 
-            if (window.currentDomainIndex >= domainList.length) {
-                console.error("❌ 所有域名都不可用，请检查网络！");
-                return;
-            }
-
-            console.log(`🔀 切换到下一个域名：${domainList[window.currentDomainIndex]}`);
-            testCurrentDomain();
+        if (window.currentDomainIndex >= domainList.length) {
+            console.error("❌ 所有域名都不可用，请检查网络！");
+            return;
         }
+
+        console.warn(`⚠️ 访问失败地区过多，切换到下一个域名：${domainList[window.currentDomainIndex]}`);
+
+        checkDomainStatus(domainList[window.currentDomainIndex], function (isAvailable) {
+            if (!isAvailable) {
+                console.warn(`❌ 域名 ${domainList[window.currentDomainIndex]} 仍然不可用，继续切换...`);
+                switchDomain(); // **如果新域名仍然失败，继续切换**
+            } else {
+                console.log(`✅ 切换成功，使用新域名: ${domainList[window.currentDomainIndex]}`);
+            }
+        });
     }
 
     // 🔄 当前域名检测
