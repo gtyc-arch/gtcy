@@ -17,27 +17,27 @@ $(document).ready(function () {
     const proxyServer = "http://localhost:3000"; // 本地代理服务器地址
 
     // 🔍 使用本地代理服务器检测域名可用性
-    function checkDomainStatus(domain, callback) {
-        let host = encodeURIComponent(domain.replace("https://", "")); // 去掉 https:// 并编码
-        let checkUrl = `${proxyServer}/proxy/check-domain?host=${host}`;
-        
-        $.get(checkUrl, function (data) {
-            console.log(`🔎 创建检测任务: ${domain}`);
+function checkDomainStatus(domain, callback) {
+    let host = domain.replace("https://", "").replace("http://", ""); // 去掉 URL 协议
+    let checkUrl = `http://localhost:3000/proxy/check-domain?host=${encodeURIComponent(host)}`;
 
-            if (data.error_code === 0 && data.data.id) {
-                console.log(`✅ 任务创建成功，任务ID: ${data.data.id}`);
-                queryTaskResult(data.data.id, callback);
-            } else {
-                failCount++;
-                console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
-                callback(false);
-            }
-        }).fail(function () {
+    $.get(checkUrl, function (data) {
+        console.log(`🔎 创建检测任务: ${domain}`);
+
+        if (data.error_code === 0 && data.data.id) {
+            console.log(`✅ 任务创建成功，任务ID: ${data.data.id}`);
+            queryTaskResult(data.data.id, callback);
+        } else {
             failCount++;
-            console.error(`❌ ${domain} 任务创建请求失败 (${failCount}/${maxFailCount})`);
+            console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
             callback(false);
-        });
-    }
+        }
+    }).fail(function () {
+        failCount++;
+        console.error(`❌ ${domain} 任务创建请求失败 (${failCount}/${maxFailCount})`);
+        callback(false);
+    });
+}
 
     // 🔄 查询任务结果
     function queryTaskResult(taskId, callback) {
