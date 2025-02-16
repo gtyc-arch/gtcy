@@ -17,18 +17,27 @@ $(document).ready(function () {
     const proxyServer = "http://localhost:3000"; // 本地代理服务器地址
 
     // 🔍 使用本地代理服务器检测域名可用性
- function queryTaskResult(taskId, callback) {
-    if (!taskId) {
-        console.error("❌ 任务 ID 为空，无法查询");
-        return;
-    }
+ function checkDomainStatus(domain, callback) {
+    let host = domain; // 直接传递完整 URL
+    let checkUrl = `http://localhost:3000/proxy/check-domain?host=${encodeURIComponent(host)}`;
 
-    let queryUrl = `http://localhost:3000/proxy/query-task?id=${encodeURIComponent(taskId)}`;
+    $.get(checkUrl, function (data) {
+        console.log(`🔎 创建检测任务: ${domain}`);
 
-    setTimeout(function () {
-        $.get(queryUrl, function (data) {
-            if (data.done && data.list && data.list.length > 0) {
-                console.log(`✅ 任务 ${taskId} 完成, 结果:`, data.list);
+        if (data.id) {
+            console.log(`✅ 任务创建成功，任务ID: ${data.id}`);
+            setTimeout(() => queryTaskResult(data.id, callback), 10000); // **等待 10 秒再查询**
+        } else {
+            failCount++;
+            console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
+            callback(false);
+        }
+    }).fail(function () {
+        failCount++;
+        console.error(`❌ ${domain} 任务创建请求失败 (${failCount}/${maxFailCount})`);
+        callback(false);
+    });
+}
 
                 // **把检测结果渲染到页面**
                 let resultHTML = "<h3>检测结果</h3><ul>";
