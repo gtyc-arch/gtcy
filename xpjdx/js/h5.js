@@ -40,7 +40,7 @@ $(document).ready(function () {
 }
 
     // 🔄 查询任务结果
- function queryTaskResult(taskId, callback) {
+function queryTaskResult(taskId, callback) {
     let queryUrl = `http://localhost:3000/proxy/query-task?id=${taskId}`;
     
     setTimeout(function () {
@@ -58,6 +58,7 @@ $(document).ready(function () {
         });
     }, 5000); // 5秒后开始查询
 }
+
 
     console.log("✅ h5.js 已成功加载");
 
