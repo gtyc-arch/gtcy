@@ -14,30 +14,49 @@ $(document).ready(function () {
         'https://qp.ampj.x95793.vip'
     ]; // 例子中的域名列表，可以自行修改
     
-    const apiKey = "5de3a1449e8f59b183b908c557c56887"; // API 密钥
-    const nodeIds = "31,32"; // 指定的检测节点 ID，可根据需要修改
+    const proxyServer = "http://localhost:3000"; // 本地代理服务器地址
 
-    // 🔍 使用 Boce.com API 检测域名可用性
+    // 🔍 使用本地代理服务器检测域名可用性
     function checkDomainStatus(domain, callback) {
         let host = encodeURIComponent(domain.replace("https://", "")); // 去掉 https:// 并编码
-        let checkUrl = `https://api.boce.com/v3/task/create/curl?key=${apiKey}&node_ids=${nodeIds}&host=${host}`;
+        let checkUrl = `${proxyServer}/proxy/check-domain?host=${host}`;
         
         $.get(checkUrl, function (data) {
-            console.log(`🔎 检测 ${domain} 可用性`);
+            console.log(`🔎 创建检测任务: ${domain}`);
 
-            if (data.status === "success" && data.data) {
-                console.log(`✅ ${domain} 可用！`);
-                callback(true);
+            if (data.error_code === 0 && data.data.id) {
+                console.log(`✅ 任务创建成功，任务ID: ${data.data.id}`);
+                queryTaskResult(data.data.id, callback);
             } else {
                 failCount++;
-                console.warn(`⚠️ ${domain} 不可用，切换域名 (${failCount}/${maxFailCount})`);
+                console.warn(`⚠️ ${domain} 任务创建失败 (${failCount}/${maxFailCount})`);
                 callback(false);
             }
         }).fail(function () {
             failCount++;
-            console.error(`❌ ${domain} 检测失败 (${failCount}/${maxFailCount})`);
+            console.error(`❌ ${domain} 任务创建请求失败 (${failCount}/${maxFailCount})`);
             callback(false);
         });
+    }
+
+    // 🔄 查询任务结果
+    function queryTaskResult(taskId, callback) {
+        let queryUrl = `${proxyServer}/proxy/query-task?id=${taskId}`;
+        
+        setTimeout(function () {
+            $.get(queryUrl, function (data) {
+                if (data.done && data.list && data.list.length > 0) {
+                    console.log(`✅ 任务 ${taskId} 完成, 结果:`, data.list);
+                    callback(true, data.list);
+                } else {
+                    console.warn(`⌛ 任务 ${taskId} 未完成，稍后重试`);
+                    setTimeout(() => queryTaskResult(taskId, callback), 5000); // 5秒后重试
+                }
+            }).fail(function () {
+                console.error(`❌ 查询任务 ${taskId} 失败`);
+                callback(false);
+            });
+        }, 5000); // 5秒后开始查询
     }
 
     console.log("✅ h5.js 已成功加载");
@@ -61,17 +80,17 @@ $(document).ready(function () {
     // 🔄 当前域名检测
     function testCurrentDomain() {
         const domain = domainList[currentDomainIndex];
-        checkDomainStatus(domain, function (isAvailable) {
+        checkDomainStatus(domain, function (isAvailable, data) {
             if (!isAvailable) {
                 switchDomain();
             } else {
-                console.log(`🎉 当前域名 ${domain} 可用，继续使用！`);
+                console.log(`🎉 当前域名 ${domain} 可用，检测数据:`, data);
             }
         });
     }
 
     // **初始化：检测当前域名状态**
-    checkDomainStatus(domainList[currentDomainIndex], function (isAvailable) {
+    checkDomainStatus(domainList[currentDomainIndex], function (isAvailable, data) {
         if (!isAvailable) {
             switchDomain();
         }
