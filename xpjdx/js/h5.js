@@ -40,24 +40,24 @@ $(document).ready(function () {
     }
 
     // 🔄 查询任务结果
-    function queryTaskResult(taskId, callback) {
-        let queryUrl = `${proxyServer}/proxy/query-task?id=${taskId}`;
-        
-        setTimeout(function () {
-            $.get(queryUrl, function (data) {
-                if (data.done && data.list && data.list.length > 0) {
-                    console.log(`✅ 任务 ${taskId} 完成, 结果:`, data.list);
-                    callback(true, data.list);
-                } else {
-                    console.warn(`⌛ 任务 ${taskId} 未完成，稍后重试`);
-                    setTimeout(() => queryTaskResult(taskId, callback), 5000); // 5秒后重试
-                }
-            }).fail(function () {
-                console.error(`❌ 查询任务 ${taskId} 失败`);
-                callback(false);
-            });
-        }, 5000); // 5秒后开始查询
-    }
+  function queryTaskResult(taskId, callback) {
+    let queryUrl = `http://localhost:3000/proxy/query-task?id=${taskId}`;
+    
+    setTimeout(function () {
+        $.get(queryUrl, function (data) {
+            if (data.done && data.list && data.list.length > 0) {
+                console.log(`✅ 任务 ${taskId} 完成, 结果:`, data.list);
+                callback(true, data.list);
+            } else {
+                console.warn(`⌛ 任务 ${taskId} 未完成，稍后重试`);
+                setTimeout(() => queryTaskResult(taskId, callback), 5000); // 5秒后重试
+            }
+        }).fail(function () {
+            console.error(`❌ 查询任务 ${taskId} 失败`);
+            callback(false);
+        });
+    }, 5000); // 5秒后开始查询
+}
 
     console.log("✅ h5.js 已成功加载");
 
