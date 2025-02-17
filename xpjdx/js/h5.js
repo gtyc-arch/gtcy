@@ -2,13 +2,13 @@ $(document).ready(function () {
     console.log("✅ h5.js 已加载，等待 #jump-button 渲染...");
 
     let currentDomain = "";
-    const proxyServer = "https://vfh8739.vip:38271"; // 代理服务器地址
+    const proxyServer = "https://vfh8739.vip:38271"; // 代理服务器地址，确保是 HTTPS
 
     // 🔥 **获取当前服务器存储的可用域名**
     function getCurrentDomain(callback) {
         $.get(`${proxyServer}/proxy/current-domain`, function (data) {
             if (data.domain) {
-                currentDomain = data.domain.replace(/^https:\/\//, "http://"); // 强制转换为 HTTP
+                currentDomain = data.domain; // 保持原始协议（HTTPS），不强制转换
                 console.log(`✅ 服务器返回当前可用域名: ${currentDomain}`);
                 callback(true);
             } else {
