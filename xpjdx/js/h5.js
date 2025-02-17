@@ -2,7 +2,7 @@ $(document).ready(function () {
     console.log("✅ h5.js 已加载，等待 #jump-button 渲染...");
 
     let currentDomain = "";
-    const proxyServer = "http://40.81.31.71:38271"; // 代理服务器地址
+    const proxyServer = "https://40.81.31.71:38271"; // 代理服务器地址
 
     // 🔥 **获取当前服务器存储的可用域名**
     function getCurrentDomain(callback) {
