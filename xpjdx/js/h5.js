@@ -4,22 +4,29 @@ $(document).ready(function () {
     let currentDomain = "";
     const proxyServer = "https://vfh8739.vip:38271"; // 代理服务器地址
 
-    // **🔥 获取当前可用域名**
-    function getCurrentDomain(callback) {
-        $.get(`${proxyServer}/proxy/current-domain`, function (data) {
-            if (data.domain) {
-                currentDomain = data.domain; // 保持原始协议（HTTPS）
+   // 🔥 **获取当前服务器存储的可用域名**
+function getCurrentDomain(callback) {
+    $.get(`${proxyServer}/proxy/current-domain`, function (data) {
+        if (Array.isArray(data) && data.length > 0) {
+            // **找到最新的可用域名**
+            let availableDomain = data.find(d => d.连接状态 === "可用");
+            if (availableDomain) {
+                currentDomain = `https://${availableDomain.网址}`; // 确保 HTTPS
                 console.log(`✅ 服务器返回当前可用域名: ${currentDomain}`);
                 callback(true);
             } else {
-                console.warn("⚠️ 没有可用域名");
+                console.warn("⚠️ 没有找到可用的域名！");
                 callback(false);
             }
-        }).fail(function () {
-            console.error("❌ 无法从服务器获取可用域名");
+        } else {
+            console.warn("⚠️ 无法获取服务器的最新域名");
             callback(false);
-        });
-    }
+        }
+    }).fail(function () {
+        console.error("❌ 无法从服务器获取可用域名");
+        callback(false);
+    });
+}
 
     /**
      * 🔗 **绑定点击事件**
